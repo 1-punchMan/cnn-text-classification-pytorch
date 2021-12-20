@@ -3,7 +3,7 @@ import os
 import random
 import tarfile
 import urllib
-from torchtext import data
+from torchtext.legacy import data
 
 
 class TarDataset(data.Dataset):
@@ -108,3 +108,36 @@ class MR(TarDataset):
 
         return (cls(text_field, label_field, examples=examples[:dev_index]),
                 cls(text_field, label_field, examples=examples[dev_index:]))
+
+
+class ETST(data.Dataset):
+
+    @staticmethod
+    def sort_key(ex):
+        return len(ex.text)
+
+    def __init__(self, text_field, label_field, wiki_path, baidu_path, examples=None, **kwargs):
+        """Create an MR dataset instance given a path and fields.
+
+        Arguments:
+            text_field: The field that will be used for text data.
+            label_field: The field that will be used for label data.
+            path: Path to the data file.
+            examples: The examples contain all the data.
+            Remaining keyword arguments: Passed to the constructor of
+                data.Dataset.
+        """
+
+        text_field.tokenize = lambda x: x.strip().split()
+        fields = [('text', text_field), ('label', label_field)]
+
+        if examples is None:
+            examples = []
+            with open(os.path.join(wiki_path), errors='ignore') as f:
+                examples += [
+                    data.Example.fromlist([line, 'wiki'], fields) for line in f]
+            with open(os.path.join(baidu_path), errors='ignore') as f:
+                examples += [
+                    data.Example.fromlist([line, 'baidu'], fields) for line in f]
+        print("Loaded the examples.")
+        super(ETST, self).__init__(examples, fields, **kwargs)
