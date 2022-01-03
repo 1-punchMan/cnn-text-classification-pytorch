@@ -112,7 +112,7 @@ if args.predict is None:
         os.makedirs(args.save_dir)
     logger = create_logger(os.path.join(args.save_dir, 'train.log'), rank=0)
 else:
-    logger = logging.getLogger()
+    logger = create_logger()
 
 # load data
 logger.info("Loading data...")
