@@ -8,6 +8,7 @@ import torchtext.datasets as datasets
 import model
 import train
 import mydatasets
+import logging
 from data_utils.loader import load_data as ETST
 from utils import from_path_import
 
@@ -104,11 +105,14 @@ def mr(text_field, label_field, **kargs):
     # data = load_data(args)
     # return data["train"], data["valid"], data["test"]
 
-# create a logger
-args.save_dir = os.path.join(args.save_dir, datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S'))
-if not os.path.exists(args.save_dir):
-    os.makedirs(args.save_dir)
-logger = create_logger(os.path.join(args.save_dir, 'train.log'), rank=0)
+if args.predict is None:
+    """ create a logger """
+    args.save_dir = os.path.join(args.save_dir, datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S'))
+    if not os.path.exists(args.save_dir):
+        os.makedirs(args.save_dir)
+    logger = create_logger(os.path.join(args.save_dir, 'train.log'), rank=0)
+else:
+    logger = logging.getLogger()
 
 # load data
 logger.info("Loading data...")
