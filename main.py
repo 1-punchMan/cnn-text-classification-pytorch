@@ -110,7 +110,7 @@ if args.predict is None:
     args.save_dir = os.path.join(args.save_dir, datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S'))
     if not os.path.exists(args.save_dir):
         os.makedirs(args.save_dir)
-    logger = create_logger(os.path.join(args.save_dir, 'train.log'), rank=0)
+    logger = create_logger(os.path.join(args.save_dir, 'train.log'))
 else:
     logger = create_logger()
 
