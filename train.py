@@ -190,7 +190,7 @@ def ETST_predict(text, data, model, cuda_flag, tokenize=True):
             cwd = "/home/zchen/encyclopedia-text-style-transfer/tools/"
             CompletedProcess = subprocess.run(command, input=text, cwd=cwd, encoding="utf-8", shell=True, stdout=subprocess.PIPE)
             text = CompletedProcess.stdout.strip().split()  # tokenize.sh會多加一個'\n'在最後
-        numericalized = [[data["dico"].index(x) for x in text]]
+        numericalized = [[params.bos_index] + [data["dico"].index(x) for x in text] + [params.eos_index]]
 
         return numericalized
 
