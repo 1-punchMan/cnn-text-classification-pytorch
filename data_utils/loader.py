@@ -106,7 +106,7 @@ def load_data(params):
         set_dico_parameters(params, data, wiki_data['dico'])
 
         # create ParallelDataset
-        dataset = Style_Classification_Dataset(wiki_data, baidu_data, splt == 'train', params)
+        dataset = Style_Classification_Dataset(wiki_data, baidu_data, splt == 'train' and not params.predict_probs, params)
 
         data[splt] = dataset
         logger.info("")

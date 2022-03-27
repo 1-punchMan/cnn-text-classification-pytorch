@@ -65,6 +65,6 @@ class CNN_Text(nn.Module):
                 class_num = 2
                 )
             model = cls(args)
-            path = "/home/zchen/encyclopedia-text-style-transfer/cnn-text-classification-pytorch/experiments/2/2022-01-03_12-31-57/best.pt"
+            path = "/home/zchen/encyclopedia-text-style-transfer/cnn-text-classification-pytorch/experiments/cleaned/2022-03-17_14-49-32/best.pt"
             model.load_state_dict(torch.load(path, map_location=torch.device(device)))
             return model

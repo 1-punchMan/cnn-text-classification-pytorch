@@ -181,32 +181,34 @@ def ETST_eval(dataset, model, args):
                                                                        size))
     return accuracy
 
-def ETST_predict(text, data, model, cuda_flag, tokenize=True):
+def ETST_predict(params, data, model):
 
     def preprocess(text):
-        if tokenize:
+        if params.tokenize:
             zh_char_tokenize = "/home/zchen/encyclopedia-text-style-transfer/tools/zh_char_tokenize.sh"
             command=f'{zh_char_tokenize} 2>&-'
             cwd = "/home/zchen/encyclopedia-text-style-transfer/tools/"
             CompletedProcess = subprocess.run(command, input=text, cwd=cwd, encoding="utf-8", shell=True, stdout=subprocess.PIPE)
-            text = CompletedProcess.stdout.strip().split()  # tokenize.sh會多加一個'\n'在最後
+            text = CompletedProcess.stdout.strip()  # tokenize.sh會多加一個'\n'在最後
+        text = text.split()
         numericalized = [[params.bos_index] + [data["dico"].index(x) for x in text] + [params.eos_index]]
 
         return numericalized
 
-    assert isinstance(text, str)
-    numericalized = preprocess(text)
+    assert isinstance(params.predict, str)
+    numericalized = preprocess(params.predict)
     x = torch.tensor(numericalized)
     x = autograd.Variable(x)
-    if cuda_flag:
+    if params.cuda:
         x = x.cuda()
     print(x)
 
     model.eval()
     output = model(x)
-    _, predicted = torch.max(output, 1)
+    output = F.softmax(output, dim=1)
+    predicted = torch.max(output, 1)
 
-    return data["id2label"][predicted.item()]
+    return data["id2label"][predicted.indices.item()], predicted.values.item()
 
 
 def save(model, save_dir, save_prefix, steps):

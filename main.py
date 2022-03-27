@@ -3,13 +3,14 @@ import os
 import argparse
 import datetime
 import torch
-import torchtext.legacy.data as data
-import torchtext.datasets as datasets
+# import torchtext.legacy.data as data
+# import torchtext.datasets as datasets
 import model
 import train
-import mydatasets
+# import mydatasets
 import logging
 from data_utils.loader import load_data as ETST
+from data_utils.filter_strong_style import predict_probs_for_datasets
 from utils import from_path_import
 
 # from logger import create_logger
@@ -29,7 +30,7 @@ parser.add_argument('-test-interval', type=int, default=100, help='how many step
 parser.add_argument('-save-interval', type=int, default=500, help='how many steps to wait before saving [default:500]')
 parser.add_argument('-save-dir', type=str, default='snapshot', help='where to save the snapshot')
 parser.add_argument('-early-stop', type=int, default=1000, help='iteration numbers to stop without performance increasing')
-parser.add_argument('-save-best', type=bool, default=True, help='whether to save when get best performance')
+parser.add_argument('-not-save-best', dest="save_best", action='store_false', default=True, help='whether to save when get best performance')
 # data
 parser.add_argument('-dataset', type=str, default='MR', help='dataset name')
 parser.add_argument('-wiki_dir', type=str, default='', help='where to load wiki data')
@@ -43,13 +44,13 @@ parser.add_argument('-kernel-num', type=int, default=100, help='number of each k
 parser.add_argument('-kernel-sizes', type=str, default='3,4,5', help='comma-separated kernel size to use for convolution')
 parser.add_argument('-static', action='store_true', default=False, help='fix the embedding')
 # device
-parser.add_argument('-device', type=int, default=-1, help='device to use for iterate data, -1 mean cpu [default: -1]')
 parser.add_argument('-no-cuda', action='store_true', default=False, help='disable the gpu')
 # option
 parser.add_argument('-snapshot', type=str, default=None, help='filename of model snapshot [default: None]')
 parser.add_argument('-predict', type=str, default=None, help='predict the sentence given')
-parser.add_argument('-tokenize', type=bool, default=True, help='tokenize before predict')
+parser.add_argument('-not_tokenize', dest="tokenize", action='store_false', default=True, help='tokenize before predict')
 parser.add_argument('-test', action='store_true', default=False, help='train or test')
+parser.add_argument('-predict_probs', action='store_true', default=False, help='predict probabilities for all datasets')
 args = parser.parse_args()
 
 
@@ -147,19 +148,20 @@ if args.snapshot is not None:
     cnn.load_state_dict(torch.load(args.snapshot))
 
 if args.cuda:
-    torch.cuda.set_device(args.device)
     cnn = cnn.cuda()
         
 
 # train or predict
 if args.predict is not None:
-    label = train.ETST_predict(args.predict, data, cnn, args.cuda, args.tokenize) if args.dataset == "ETST" else train.predict(args.predict, cnn, text_field, label_field, args.cuda)
-    logger.info('\n[Text]  {}\n[Label] {}\n'.format(args.predict, label))
+    label, p = train.ETST_predict(args, data, cnn) if args.dataset == "ETST" else train.predict(args.predict, cnn, text_field, label_field, args.cuda)
+    logger.info('\n[Text]  {}\n[Label] {}\n[Probability] {}\n'.format(args.predict, label, p))
 elif args.test:
     try:
         train.ETST_eval(test_set, cnn, args) if args.dataset == "ETST" else train.eval(test_iter, cnn, args)
     except Exception as e:
         logger.info("\nSorry. The test dataset doesn't  exist.\n")
+elif args.predict_probs:
+    predict_probs_for_datasets(args, data, cnn)
 else:
     logger.info("")
     try:
